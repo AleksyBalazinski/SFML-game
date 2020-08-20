@@ -1,5 +1,4 @@
 #include <SFML/Graphics.hpp>
-//#include <SFML/Audio.hpp>
 #include <cmath>
 using namespace sf;
 double deg_to_rad(double degrees);
@@ -41,7 +40,7 @@ int main()
     //::create a bullet (missle)::
     double v = 1000; //velocity in mps
     CircleShape bullet(9);
-    bullet.setPosition(124, 520); 
+    bullet.setPosition(60, 510); 
     bullet.setFillColor(Color::Blue);
     
 
@@ -51,10 +50,7 @@ int main()
     explosion_img.loadFromFile("explosion.png");
     explosion.setTexture(explosion_img);
     explosion.setScale(1, 1);
-    //Sound boom;
-    //SoundBuffer boom_audio;
-    //boom_audio.loadFromFile("explosion-sound.wav");
-    //boom.setBuffer(boom_audio);
+
     //::create the Godzilla::
     Sprite godzilla;
     Texture godzilla_img;
@@ -72,16 +68,49 @@ int main()
     RectangleShape fullHealthbar(Vector2f(hb_x + 10, 30));
     fullHealthbar.setPosition(godzilla.getPosition().x - 5, godzilla.getPosition().y - 25);
     fullHealthbar.setFillColor(Color::White);
-    //::main loop::
+
+    //::title screen::
+    for (int i = 0; i <= 300; i++) //for 3 sec. (30 FPS)
+    {
+        window.clear();
+        Text title;
+        Text misc;
+        title.setFont(font);
+        title.setString("Godzilla vs. Tank");
+        title.setCharacterSize(70); // in pixels, not points!
+        title.setPosition(30, 200);
+        title.setFillColor(Color::Red);
+        title.setStyle(Text::Bold);
+        misc.setFont(font);
+        misc.setString(R"#(
+         Godzilla has taken control over the city!
+         Your turn is to kill her!
+         Be cautious tho! 
+         You will die as soon as 
+         she manages to touch you!
+         |Game for educational purposes 
+          by A. Balazinski|)#");
+        misc.setCharacterSize(30);
+        misc.setPosition(10, 300);
+        misc.setFillColor(Color::Blue);
+        window.draw(title);
+        window.draw(misc);
+        window.display();
+    }
+    //::main loop & game mechanics::
     bool fired = false; //flag for firing a bullet
     bool touched = false; //flag for sygnalizing that godzilla touched the tank
     bool killed = false; //flag for signalizing that godzilla was killed
-    bool hit = false;
+    bool hit = false; //flag for sygnalizing that godzilla was hit
+    bool once = false; //flag for signalizing that initial parameters are read only once
     int k = 0; //counts loops for bullet
     int n = 0; //counts loops for godzilla
     double angle = 0; //current value of the angle
-    double pos_x = 124; 
-    double pos_y = 520;
+    double pos_x = 60; 
+    double pos_y = 510;
+    double initial_x = 0;
+    double initial_y = 0;
+    double initial_angle = 0;
     double t_elapsed = 0; //how long was the bullet airbone
     double T_elapsed = 0; //how long was godzilla alive
     double g = 150;
@@ -99,33 +128,30 @@ int main()
                 {
                     hull.move(5, 0);
                     gun.move(5, 0);
-                    if (fired == false)
-                    {
-                        bullet.move(5, 0);
-                        pos_x += 5;
-                    }
+                    
+                    bullet.move(5, 0);
+                    pos_x += 5;
+                    
                 }
                 if (someEvent.key.code == Keyboard::Left)
                 {
                     hull.move(-5, 0);
                     gun.move(-5, 0);
-                    if (fired == false)
-                    {
-                        bullet.move(-5, 0);
-                        pos_x -= 5;
-                    }
+                    bullet.move(-5, 0);
+                    pos_x -= 5;
+                    
                 }
                 //if down-arrow is pressed, barrel rotates down by 5 degrees
                 if (someEvent.key.code == Keyboard::Down)
                 {
                     gun.rotate(5);
-                    if(fired == false) angle -= 5;
+                    angle += 5;
                 }
                 //likewise...
                 if (someEvent.key.code == Keyboard::Up)
                 {
                     gun.rotate(-5);
-                    if(fired == false) angle += 5;
+                    angle -= 5;
 
                 }
                 if (someEvent.key.code == Keyboard::Space) fired = true;
@@ -139,12 +165,18 @@ int main()
         if (fired == true)
         {
             //window's boundaries detection
-            
+            if(once == false) 
+            {
+                initial_x = pos_x;
+                initial_y = pos_y;
+                initial_angle = angle;
+                once = true;
+            }
             if (bullet_position.x < width && bullet_position.y < height && bullet_position.x > 0 && bullet_position.y > 0)
             {
                 bullet.setPosition(
-                    pos_x + 64 * cos(deg_to_rad(angle)) + (v * cos(deg_to_rad(angle)) * t_elapsed) * scale,
-                    pos_y - 64 * sin(deg_to_rad(angle)) + (-v * sin(deg_to_rad(angle)) * t_elapsed + 0.5 * g * t_elapsed * t_elapsed) * scale
+                    initial_x + 64 * cos(deg_to_rad(initial_angle)) + (v * cos(deg_to_rad(initial_angle)) * t_elapsed) * scale,
+                    initial_y + 64 * sin(deg_to_rad(initial_angle)) + (v * sin(deg_to_rad(initial_angle)) * t_elapsed - 0.5 * g * t_elapsed * t_elapsed) * scale
                 );
                 window.draw(bullet);
                 k++;
@@ -152,13 +184,12 @@ int main()
             }
             else
             {
-                //explosion.setPosition(0, 0); //sygnalize that the bullet is out of screen
-                //window.draw(explosion);
                 fired = false;
                 //return to initial values of parameters
                 bullet.setPosition(pos_x + 64 * cos(deg_to_rad(angle)), pos_y - 64 * sin(deg_to_rad(angle)));
                 k = 0;
                 t_elapsed = 0;
+                once = false;
             }
         }
         //godzilla's movement and collision detection
@@ -180,7 +211,6 @@ int main()
                 Vector2f new_size(hb_x, 20);
                 healthbar.setSize(new_size);
                 explosion.setPosition(0, 0); //sygnalize that the bullet hit godzilla
-                //boom.play();
                 window.draw(explosion);
                 hit = true;
             }

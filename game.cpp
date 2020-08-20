@@ -2,10 +2,11 @@
 graphical features of SFML library. PNG and TTF files used
 in my program are not included in this repository since I do not
 own them. Dimentions of png files:
-- tank.png 656 x 380
-- gun.png 318 x 96
-- godzilla.png 395 x 310
-Framerate was set to 30 FPS
+- tank.png 656 x 380,
+- gun.png 318 x 96,
+- godzilla.png 395 x 310.
+Framerate was set to 30 FPS.
+
 By Aleksy Balazinski (2020)*/
 #include <SFML/Graphics.hpp>
 #include <cmath>

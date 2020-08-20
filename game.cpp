@@ -6,7 +6,7 @@ int main()
 {
     const unsigned int width = 800; //screen dimentions
     const unsigned int height = 600;
-    RenderWindow window(VideoMode(width, height), "Gravity");
+    RenderWindow window(VideoMode(width, height), "Godzilla vs. Tank!");
     window.setFramerateLimit(30); //30 FPS
     const double dt = 0.0333; //duration of one frame
 
